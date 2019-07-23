@@ -68,6 +68,7 @@ def bench():
     BIT_REVERSE = 0
     SCRAMBLER_DISABLE = 0
     PRBS31_ENABLE = 1
+    SERDES_PIPELINE = 2
     SLIP_COUNT_WIDTH = 3
     COUNT_125US = 1250/6.4
 
@@ -182,6 +183,14 @@ def bench():
         yield clk.posedge
 
         # testbench stimulus
+
+        # wait for block lock
+        while not rx_block_lock:
+            yield clk.posedge
+
+        # dump garbage
+        while not sink.empty():
+            sink.recv()
 
         for payload_len in list(range(16,34)):
             yield clk.posedge

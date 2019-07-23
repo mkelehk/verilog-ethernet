@@ -41,6 +41,7 @@ SYN_FILES += lib/eth/lib/axis/rtl/arbiter.v
 SYN_FILES += lib/eth/lib/axis/rtl/priority_encoder.v
 SYN_FILES += lib/eth/lib/axis/rtl/axis_fifo.v
 SYN_FILES += lib/eth/lib/axis/rtl/axis_async_fifo.v
+SYN_FILES += lib/eth/lib/axis/rtl/axis_async_fifo_adapter.v
 
 # XDC files
 XDC_FILES = fpga.xdc
@@ -57,9 +58,9 @@ program: $(FPGA_TOP).bit
 	echo "connect_hw_server" >> program.tcl
 	echo "open_hw_target" >> program.tcl
 	echo "current_hw_device [lindex [get_hw_devices] 0]" >> program.tcl
-	echo "refresh_hw_device -update_hw_probes false [lindex [get_hw_devices] 0]" >> program.tcl
-	echo "set_property PROGRAM.FILE {$(FPGA_TOP).bit} [lindex [get_hw_devices] 0]" >> program.tcl
-	echo "program_hw_devices [lindex [get_hw_devices] 0]" >> program.tcl
+	echo "refresh_hw_device -update_hw_probes false [current_hw_device]" >> program.tcl
+	echo "set_property PROGRAM.FILE {$(FPGA_TOP).bit} [current_hw_device]" >> program.tcl
+	echo "program_hw_devices [current_hw_device]" >> program.tcl
 	echo "exit" >> program.tcl
-	vivado -mode batch -source program.tcl
+	vivado -nojournal -nolog -mode batch -source program.tcl
 

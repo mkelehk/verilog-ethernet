@@ -61,6 +61,8 @@ def bench():
     BIT_REVERSE = 0
     SCRAMBLER_DISABLE = 0
     PRBS31_ENABLE = 1
+    TX_SERDES_PIPELINE = 2
+    RX_SERDES_PIPELINE = 2
     SLIP_COUNT_WIDTH = 3
     COUNT_125US = 1250/6.4
 
@@ -212,6 +214,14 @@ def bench():
         yield clk.posedge
 
         # testbench stimulus
+
+        # wait for block lock
+        while not rx_block_lock:
+            yield clk.posedge
+
+        # dump garbage
+        while not xgmii_sink.empty():
+            xgmii_sink.recv()
 
         yield clk.posedge
         print("test 1: test RX packet")

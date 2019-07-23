@@ -55,20 +55,36 @@ module fpga_core #
     /*
      * Ethernet: QSFP28
      */
+    input  wire        qsfp_tx_clk_1,
+    input  wire        qsfp_tx_rst_1,
     output wire [63:0] qsfp_txd_1,
     output wire [7:0]  qsfp_txc_1,
+    input  wire        qsfp_rx_clk_1,
+    input  wire        qsfp_rx_rst_1,
     input  wire [63:0] qsfp_rxd_1,
     input  wire [7:0]  qsfp_rxc_1,
+    input  wire        qsfp_tx_clk_2,
+    input  wire        qsfp_tx_rst_2,
     output wire [63:0] qsfp_txd_2,
     output wire [7:0]  qsfp_txc_2,
+    input  wire        qsfp_rx_clk_2,
+    input  wire        qsfp_rx_rst_2,
     input  wire [63:0] qsfp_rxd_2,
     input  wire [7:0]  qsfp_rxc_2,
+    input  wire        qsfp_tx_clk_3,
+    input  wire        qsfp_tx_rst_3,
     output wire [63:0] qsfp_txd_3,
     output wire [7:0]  qsfp_txc_3,
+    input  wire        qsfp_rx_clk_3,
+    input  wire        qsfp_rx_rst_3,
     input  wire [63:0] qsfp_rxd_3,
     input  wire [7:0]  qsfp_rxc_3,
+    input  wire        qsfp_tx_clk_4,
+    input  wire        qsfp_tx_rst_4,
     output wire [63:0] qsfp_txd_4,
     output wire [7:0]  qsfp_txc_4,
+    input  wire        qsfp_rx_clk_4,
+    input  wire        qsfp_rx_rst_4,
     input  wire [63:0] qsfp_rxd_4,
     input  wire [7:0]  qsfp_rxc_4,
 
@@ -359,16 +375,16 @@ eth_mac_10g_fifo #(
     .ENABLE_PADDING(1),
     .ENABLE_DIC(1),
     .MIN_FRAME_LENGTH(64),
-    .TX_FIFO_ADDR_WIDTH(9),
+    .TX_FIFO_DEPTH(4096),
     .TX_FRAME_FIFO(1),
-    .RX_FIFO_ADDR_WIDTH(9),
+    .RX_FIFO_DEPTH(4096),
     .RX_FRAME_FIFO(1)
 )
 eth_mac_10g_fifo_inst (
-    .rx_clk(clk),
-    .rx_rst(rst),
-    .tx_clk(clk),
-    .tx_rst(rst),
+    .rx_clk(qsfp_rx_clk_1),
+    .rx_rst(qsfp_rx_rst_1),
+    .tx_clk(qsfp_tx_clk_1),
+    .tx_rst(qsfp_tx_rst_1),
     .logic_clk(clk),
     .logic_rst(rst),
 
@@ -433,9 +449,9 @@ wire gig_tx_axis_tuser_64;
 eth_mac_1g_fifo #(
     .ENABLE_PADDING(1),
     .MIN_FRAME_LENGTH(64),
-    .TX_FIFO_ADDR_WIDTH(12),
+    .TX_FIFO_DEPTH(4096),
     .TX_FRAME_FIFO(1),
-    .RX_FIFO_ADDR_WIDTH(12),
+    .RX_FIFO_DEPTH(4096),
     .RX_FRAME_FIFO(1)
 )
 eth_mac_1g_inst (
@@ -808,7 +824,7 @@ udp_complete_inst (
 );
 
 axis_fifo #(
-    .ADDR_WIDTH(10),
+    .DEPTH(8192),
     .DATA_WIDTH(64),
     .KEEP_ENABLE(1),
     .KEEP_WIDTH(8),

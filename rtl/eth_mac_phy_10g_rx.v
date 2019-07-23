@@ -35,48 +35,58 @@ module eth_mac_phy_10g_rx #
     parameter KEEP_WIDTH = (DATA_WIDTH/8),
     parameter CTRL_WIDTH = (DATA_WIDTH/8),
     parameter HDR_WIDTH = (DATA_WIDTH/32),
+    parameter PTP_PERIOD_NS = 4'h6,
+    parameter PTP_PERIOD_FNS = 16'h6666,
+    parameter PTP_TS_ENABLE = 0,
+    parameter PTP_TS_WIDTH = 96,
+    parameter USER_WIDTH = (PTP_TS_ENABLE ? PTP_TS_WIDTH : 0) + 1,
     parameter BIT_REVERSE = 0,
     parameter SCRAMBLER_DISABLE = 0,
     parameter PRBS31_ENABLE = 0,
+    parameter SERDES_PIPELINE = 0,
     parameter SLIP_COUNT_WIDTH = 3,
     parameter COUNT_125US = 125000/6.4
 )
 (
-    input  wire                  clk,
-    input  wire                  rst,
+    input  wire                     clk,
+    input  wire                     rst,
 
     /*
      * AXI output
      */
-    output wire [DATA_WIDTH-1:0] m_axis_tdata,
-    output wire [KEEP_WIDTH-1:0] m_axis_tkeep,
-    output wire                  m_axis_tvalid,
-    output wire                  m_axis_tlast,
-    output wire                  m_axis_tuser,
+    output wire [DATA_WIDTH-1:0]    m_axis_tdata,
+    output wire [KEEP_WIDTH-1:0]    m_axis_tkeep,
+    output wire                     m_axis_tvalid,
+    output wire                     m_axis_tlast,
+    output wire [USER_WIDTH-1:0]    m_axis_tuser,
 
     /*
      * SERDES interface
      */
-    input  wire [DATA_WIDTH-1:0] serdes_rx_data,
-    input  wire [HDR_WIDTH-1:0]  serdes_rx_hdr,
-    output wire                  serdes_rx_bitslip,
+    input  wire [DATA_WIDTH-1:0]    serdes_rx_data,
+    input  wire [HDR_WIDTH-1:0]     serdes_rx_hdr,
+    output wire                     serdes_rx_bitslip,
+
+    /*
+     * PTP
+     */
+    input  wire [PTP_TS_WIDTH-1:0]  ptp_ts,
 
     /*
      * Status
      */
-    output wire                  rx_start_packet_0,
-    output wire                  rx_start_packet_4,
-    output wire [6:0]            rx_error_count,
-    output wire                  rx_error_bad_frame,
-    output wire                  rx_error_bad_fcs,
-    output wire                  rx_bad_block,
-    output wire                  rx_block_lock,
-    output wire                  rx_high_ber,
+    output wire [1:0]               rx_start_packet,
+    output wire [6:0]               rx_error_count,
+    output wire                     rx_error_bad_frame,
+    output wire                     rx_error_bad_fcs,
+    output wire                     rx_bad_block,
+    output wire                     rx_block_lock,
+    output wire                     rx_high_ber,
 
     /*
      * Configuration
      */
-    input  wire                  rx_prbs31_enable
+    input  wire                     rx_prbs31_enable
 );
 
 // bus width assertions
@@ -106,6 +116,7 @@ eth_phy_10g_rx_if #(
     .BIT_REVERSE(BIT_REVERSE),
     .SCRAMBLER_DISABLE(SCRAMBLER_DISABLE),
     .PRBS31_ENABLE(PRBS31_ENABLE),
+    .SERDES_PIPELINE(SERDES_PIPELINE),
     .SLIP_COUNT_WIDTH(SLIP_COUNT_WIDTH),
     .COUNT_125US(COUNT_125US)
 )
@@ -127,7 +138,12 @@ eth_phy_10g_rx_if_inst (
 axis_baser_rx_64 #(
     .DATA_WIDTH(DATA_WIDTH),
     .KEEP_WIDTH(KEEP_WIDTH),
-    .HDR_WIDTH(HDR_WIDTH)
+    .HDR_WIDTH(HDR_WIDTH),
+    .PTP_PERIOD_NS(PTP_PERIOD_NS),
+    .PTP_PERIOD_FNS(PTP_PERIOD_FNS),
+    .PTP_TS_ENABLE(PTP_TS_ENABLE),
+    .PTP_TS_WIDTH(PTP_TS_WIDTH),
+    .USER_WIDTH(USER_WIDTH)
 )
 axis_baser_rx_inst (
     .clk(clk),
@@ -139,8 +155,8 @@ axis_baser_rx_inst (
     .m_axis_tvalid(m_axis_tvalid),
     .m_axis_tlast(m_axis_tlast),
     .m_axis_tuser(m_axis_tuser),
-    .start_packet_0(rx_start_packet_0),
-    .start_packet_4(rx_start_packet_4),
+    .ptp_ts(ptp_ts),
+    .start_packet(rx_start_packet),
     .error_bad_frame(rx_error_bad_frame),
     .error_bad_fcs(rx_error_bad_fcs),
     .rx_bad_block(rx_bad_block)

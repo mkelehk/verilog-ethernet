@@ -31,7 +31,7 @@ THE SOFTWARE.
  */
 module axis_async_fifo #
 (
-    parameter ADDR_WIDTH = 12,
+    parameter DEPTH = 4096,
     parameter DATA_WIDTH = 8,
     parameter KEEP_ENABLE = (DATA_WIDTH>8),
     parameter KEEP_WIDTH = (DATA_WIDTH/8),
@@ -90,6 +90,8 @@ module axis_async_fifo #
     output wire                   m_status_bad_frame,
     output wire                   m_status_good_frame
 );
+
+parameter ADDR_WIDTH = (KEEP_ENABLE && KEEP_WIDTH > 1) ? $clog2(DEPTH/KEEP_WIDTH) : $clog2(DEPTH);
 
 // check configuration
 initial begin
@@ -302,7 +304,7 @@ always @* begin
             wr_ptr_cur_gray_next = wr_ptr_cur_next ^ (wr_ptr_cur_next >> 1);
             if (s_axis_tlast) begin
                 // end of frame
-                if (DROP_BAD_FRAME && (USER_BAD_FRAME_MASK & s_axis_tuser == USER_BAD_FRAME_VALUE)) begin
+                if (DROP_BAD_FRAME && USER_BAD_FRAME_MASK & ~(s_axis_tuser ^ USER_BAD_FRAME_VALUE)) begin
                     // bad packet, reset write pointer
                     wr_ptr_cur_next = wr_ptr_reg;
                     wr_ptr_cur_gray_next = wr_ptr_cur_next ^ (wr_ptr_cur_next >> 1);
